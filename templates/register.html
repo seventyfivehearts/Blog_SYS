@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h1 class="text-center">注册</h1>
+            <form action="" id="myform">
+                {% csrf_token %}
+                {% for form in form_obj %}
+                    <div class="form-group">
+                        <label for="">{{ form.label }}</label>
+                        {{ form }}
+                        <span style="color: red"> {{ form.errors.0 }}</span>
+                    </div>
+                {% endfor %}
+                <div class="from-group">
+                    <label for="myfile">头像
+                        {% load static %}
+                        <img  alt="" src="{% static 'img/default.jpg' %}" id="myimg" width="100" style="margin-left: 10px" >
+                    </label>
+                    <input type="file" id="myfile" name="avatar" style="display: none">
+                </div>
+                <input type="button" class="btn btn-primary pull-right" value="注册" id="id_commit">
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    $('#myfile').change(function () {
+        //文件阅读器
+        //1.先生成一个文件阅读器对象
+        let myFileReaderObj = new FileReader();
+        //2.获取用户上传信息
+        let fileObj = $(this)[0].files[0];
+        //3.将文件对象交给阅读器对象读取
+        myFileReaderObj.readAsDataURL(fileObj); //异步操作 图片未读取完毕，代码执行到下一步
+        //4.利用文件阅读器将文件展示到前端页面 修改src属性
+        // 等待文件阅读器加载完毕之后再执行
+        myFileReaderObj.onload = function(){
+            $('#myimg').attr('src', myFileReaderObj.result)
+        }
+    })
+</script>
+</html>
