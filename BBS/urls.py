@@ -20,5 +20,9 @@ from app01 import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     # 注册页面
-    url(r'^register/', views.register)
+    url(r'^register/', views.register, name='reg'),
+    # 登录功能
+    url(r'^login/', views.login, name='login'),
+    # 图片相关
+    url(r'^get_code/', views.get_code)
 ]

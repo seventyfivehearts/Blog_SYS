@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    {% load static %}
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h1 class="text-center">登录</h1>
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" name="username" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" name="password" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="">验证码</label>
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="text" name="code" id="id_code" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <img src="/get_code/" alt="" width="380" height="35" id="id_img">
+                    </div>
+                </div>
+            </div>
+            <input type="button" class="btn btn-success" value="登录">
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    $('#id_img').click(function () {
+        //1.获取标签之间的src
+        let oldVal = $(this).attr('src')
+        $(this).attr('src', oldVal += '?')
+    })
+</script>
+</html>

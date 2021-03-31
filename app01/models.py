@@ -12,7 +12,7 @@ from django.contrib.auth.models import AbstractUser
 class UserInfo(AbstractUser):
     phone = models.BigIntegerField(verbose_name='用户手机号', null=True)
     # 用户头像
-    avatar = models.FileField(upload_to='avatar/', default='avatar/default.png', verbose_name='创建时间')
+    avatar = models.FileField(upload_to='avatar/', default='avatar/default.jpg', verbose_name='创建时间')
     """
     给avatar字段传文件对象，文件会自动保存到avatar/目录下，默认是default.png图片
     """

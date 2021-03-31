@@ -12,7 +12,7 @@ class MyRegForm(forms.Form):
                                },
                                # 需要让标签有bootstrap样式
                                # widget=forms.widgets.TextInput(attrs={'class': 'form-control'}),
-                               widget = forms.widgets.TextInput(attrs={'class': 'form-control '}),
+                               widget=forms.widgets.TextInput(attrs={'class': 'form-control'}),
                                )
     password = forms.CharField(label='密码', min_length=3, max_length=8,
                                error_messages={
@@ -21,7 +21,7 @@ class MyRegForm(forms.Form):
                                    'max_length': '密码最大为八位',
                                },
                                # 需要让标签有bootstrap样式
-                               widget = forms.widgets.PasswordInput(attrs={'class': 'form-control'})
+                               widget=forms.widgets.PasswordInput(attrs={'class': 'form-control'})
                                )
     confirm_password = forms.CharField(label='确认密码', min_length=3, max_length=8,
                                        error_messages={
@@ -54,7 +54,7 @@ class MyRegForm(forms.Form):
     # 全局钩子  校验两次用户名是否一致
     def clean(self):
         password = self.cleaned_data.get('password')
-        confirm_password = self.cleaned_data.get('confirm_data')
+        confirm_password = self.cleaned_data.get('confirm_password')
         if not password == confirm_password:
             self.add_error('confirm_password', '两次输入的密码不一样')
 

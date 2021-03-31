@@ -18,9 +18,11 @@
                 {% csrf_token %}
                 {% for form in form_obj %}
                     <div class="form-group">
-                        <label for="">{{ form.label }}</label>
+{#                    直接拿到input框的id值#}
+                        <label for="{{ form.auto_id }}">{{ form.label }}</label>
                         {{ form }}
-                        <span style="color: red"> {{ form.errors.0 }}</span>
+{#{{ form.errors.0 }}#}
+                        <span style="color: red" class="pull-right"> </span>
                     </div>
                 {% endfor %}
                 <div class="from-group">
@@ -50,6 +52,45 @@
         myFileReaderObj.onload = function(){
             $('#myimg').attr('src', myFileReaderObj.result)
         }
+    });
+    //发送ajax请求  发送的时候包含普通的键值对也包含文件对象
+    $('#id_commit').click(function () {
+        let formDataObj = new FormData();
+        //1.添加普通的键值对
+        $.each($('#myform').serializeArray(),function (index, obj) {
+        formDataObj.append(obj.name, obj.value)
+        });
+        // 添加文件对象
+        formDataObj.append('avatar', $('#myfile')[0].files[0]);
+        //3.发送ajax请求
+        $.ajax({
+            url: "",
+            type: "post",
+            data: formDataObj,
+            contentType: false,
+            processData: false,
+            success:function (args) {
+                if (args.code==1000){
+                    //跳转到登录页面
+                    window.location.href = args.url
+                }
+                else {
+                    //如何将错误的信息展示到对应的input框
+                    //forms组件渲染的标签都是id_字段名
+                    $.each(args.msg,function (index, obj) {
+                        // console.log(index,obj)  //username ["用户名不能为空"]
+                        let targetId = '#id_' + index;
+                        //添加拼接之后的文本
+                        $(targetId).next().text(obj[0]).parent().addClass('has-error')
+                    })
+                }
+            }
+        })
+    })
+    //给所有的input绑定获取焦点事件
+    $('input').focus(function () {
+        //修改 input下面的span和input外面的div标签修改内容及属性
+        $(this).next().text('').parent().removeClass('has-error')
     })
 </script>
 </html>
