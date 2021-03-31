@@ -24,5 +24,12 @@ urlpatterns = [
     # 登录功能
     url(r'^login/', views.login, name='login'),
     # 图片相关
-    url(r'^get_code/', views.get_code)
+    url(r'^get_code/', views.get_code),
+    # 首页
+    url(r'^home/', views.home, name='home'),
+
+    # 修改密码
+    url(r'^set_password/', views.set_password, name='set_pwd'),
+    # 退出登录
+    url(r'^logout/', views.logout, name='logout'),
 ]

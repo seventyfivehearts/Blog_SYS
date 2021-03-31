@@ -16,11 +16,11 @@
             <h1 class="text-center">登录</h1>
             <div class="form-group">
                 <label for="username">用户名</label>
-                <input type="text" name="username" class="form-control">
+                <input type="text" name="username" class="form-control" id="username">
             </div>
             <div class="form-group">
                 <label for="password">密码</label>
-                <input type="password" name="password" class="form-control">
+                <input type="password" name="password" class="form-control"id="password">
             </div>
             <div class="form-group">
                 <label for="">验证码</label>
@@ -33,7 +33,8 @@
                     </div>
                 </div>
             </div>
-            <input type="button" class="btn btn-success" value="登录">
+            <input type="button" class="btn btn-success" value="登录"id="id_commit">
+            <span style="color: red" id="id_error"></span>
         </div>
     </div>
 </div>
@@ -43,6 +44,28 @@
         //1.获取标签之间的src
         let oldVal = $(this).attr('src')
         $(this).attr('src', oldVal += '?')
+    });
+    //点击登录按钮
+    $('#id_commit').click(function () {
+        $.ajax({
+            url:'',
+            type:'post',
+            data:{
+                'username':$('#username').val(),
+                'password':$('#password').val(),
+                'code':$('#id_code').val(),
+                'csrfmiddlewaretoken':'{{ csrf_token}}',
+            },
+            success:function (args) {
+                if(args.code==1000){
+                    //跳转到首页
+                    window.location.href = args.url
+                }else {
+                    //渲染错误提示
+                    $('#id_error').text(args.msg)
+                }
+            }
+        })
     })
 </script>
 </html>

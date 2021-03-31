@@ -124,3 +124,5 @@ STATICFILES_DIRS = [
 ]
 
 AUTH_USER_MODEL = 'app01.UserInfo'
+
+LOGIN_URL = '/login/'

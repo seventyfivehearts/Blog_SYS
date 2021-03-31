@@ -1,7 +1,9 @@
+from django.contrib import auth
 from django.shortcuts import render, HttpResponse, redirect
 from app01.myforms import MyRegForm
 from app01 import models
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 
 
 # Create your views here.
@@ -37,6 +39,25 @@ def register(request):
 
 
 def login(request):
+    back_dir = {'code': 1000, 'msg': ''}
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        code = request.POST.get('code')
+        # 1.先校验验证码是否正确 统一转大写或小写
+        if request.session.get('code').upper() == code.upper():
+            # 2.校验用户名或密码是否正确
+            user_obj = auth.authenticate(request, username=username, password=password)
+            if user_obj:
+                auth.login(request, user_obj)
+                back_dir['url'] = '/home/'
+            else:
+                back_dir['code'] = 2000
+                back_dir['msg'] = '用户名或密码错误'
+        else:
+            back_dir['code'] = 3000
+            back_dir['msg'] = '验证码错误'
+        return JsonResponse(back_dir)
     return render(request, 'login.html')
 
 
@@ -96,10 +117,46 @@ def get_code(request):
         random_int = str(random.randint(0, 9))
         # 从上面随机选择一个写到图片上
         tmp = random.choice([random_lower, random_upper, random_int])
-        img_draw.text((i*60 + 60, -2), tmp, get_random(), img_font)
+        img_draw.text((i * 60 + 60, -2), tmp, get_random(), img_font)
         code += tmp
-    # print(code)
+    print(code)
     request.session['code'] = code
     io_obj = BytesIO()
     img_obj.save(io_obj, 'png')
     return HttpResponse(io_obj.getvalue())
+
+
+# 首页相关
+
+def home(request):
+    return render(request, 'home.html', locals())
+
+
+@login_required
+def set_password(request):
+    back_dic = {'code': 1000, 'msg': ''}
+    if request.is_ajax():
+        if request.method == 'POST':
+            old_password = request.POST.get('old_password')
+            new_password = request.POST.get('new_password')
+            confirm_password = request.POST.get('confirm_password')
+            is_right = request.user.check_password(old_password)
+            if is_right:
+                if new_password == confirm_password:
+                    request.user.set_password(new_password)
+                    request.user.save()
+                    back_dic['msg'] = '修改成功'
+                else:
+                    back_dic['code'] = 1001
+                    back_dic['msg'] = '两次密码不一致'
+            else:
+                back_dic['code'] = 1002
+                back_dic['msg'] = '原密码错误'
+        return JsonResponse(back_dic)
+    return HttpResponse('ok')
+
+
+@login_required
+def logout(request):
+    auth.logout(request)
+    return redirect('/home/')
