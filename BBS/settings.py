@@ -126,3 +126,7 @@ STATICFILES_DIRS = [
 AUTH_USER_MODEL = 'app01.UserInfo'
 
 LOGIN_URL = '/login/'
+
+# 配置用户上传的文件的存储位置
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # 文件名可以自定义
+

@@ -4,6 +4,8 @@ from app01.myforms import MyRegForm
 from app01 import models
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from utils.mypages import Pagination
+from django.db.models import Count
 
 
 # Create your views here.
@@ -127,8 +129,16 @@ def get_code(request):
 
 
 # 首页相关
+# 分页
 
 def home(request):
+    # 查询网站中所有的文章 可以使用分页
+    article_queryset = models.Article.objects.all()
+    article_list = models.Article.objects.all()
+    current_page = request.GET.get("page", 1)
+    all_count = article_list.count()
+    page_obj = Pagination(current_page=current_page, all_count=all_count, per_page_num=3)
+    page_queryset = article_list[page_obj.start:page_obj.end]
     return render(request, 'home.html', locals())
 
 
@@ -160,3 +170,27 @@ def set_password(request):
 def logout(request):
     auth.logout(request)
     return redirect('/home/')
+
+
+def site(request, username):
+    # 1.先校验当前用户名对应的站点是否存在
+    # 2.用户不存在应该返回一个404页面
+    user_obj = models.UserInfo.objects.filter(username=username).first()
+    if not user_obj:
+        return render(request, 'error.html')
+    blog = user_obj.blog
+    article_list = models.Article.objects.filter(blog=blog)
+    current_page = request.GET.get("page", 1)
+    all_count = article_list.count()
+    page_obj = Pagination(current_page=current_page, all_count=all_count, per_page_num=3)
+    page_queryset = article_list[page_obj.start:page_obj.end]
+
+    # 1.查询当前用户所有的分类及分类下的文章数
+    category_list = models.Category.objects.filter(blog=blog).annotate(count_num=Count('article__pk')).values_list(
+        'name', 'count_num')
+    # print(category_list)    # <QuerySet [('jim的分类一', 2), ('jim的分类二', 1), ('jim的分类三', 1)]>
+    # 2.查询当前用户的所有标签及标签下的文章数
+    tag_list = models.Tag.objects.filter(blog=blog).annotate(count_num=Count('article__pk')).values_list(
+        'name', 'count_num')
+    print(tag_list)
+    return render(request, 'site.html', locals())

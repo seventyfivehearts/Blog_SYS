@@ -16,7 +16,8 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from app01 import views
-
+from django.views.static import serve
+from BBS import settings
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     # 注册页面
@@ -32,4 +33,10 @@ urlpatterns = [
     url(r'^set_password/', views.set_password, name='set_pwd'),
     # 退出登录
     url(r'^logout/', views.logout, name='logout'),
+
+    # 暴露后端文件指定文件资源
+    url(r'^media/(?P<path>.*)', serve, {'document_root':settings.MEDIA_ROOT}),
+
+    # 个人站点页面搭建
+    url(r'^(?P<username>\w+)/$', views.site, name='site'),
 ]
