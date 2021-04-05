@@ -95,6 +95,6 @@ class Comment(models.Model):
     user = models.ForeignKey(to='UserInfo')
     article = models.ForeignKey(to='Article')
     content = models.CharField(max_length=255, verbose_name='评论内容')
-    comment_time = models.DateField(auto_now_add=True, verbose_name='评论时间')
+    comment_time = models.DateTimeField(auto_now_add=True, verbose_name='评论时间')
     # 自关联
-    parent = models.ForeignKey(to='self')  # 有些评论为根评论
+    parent = models.ForeignKey(to='self', null=True)  # 有些评论为根评论

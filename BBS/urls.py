@@ -18,6 +18,7 @@ from django.contrib import admin
 from app01 import views
 from django.views.static import serve
 from BBS import settings
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     # 注册页面
@@ -35,8 +36,23 @@ urlpatterns = [
     url(r'^logout/', views.logout, name='logout'),
 
     # 暴露后端文件指定文件资源
-    url(r'^media/(?P<path>.*)', serve, {'document_root':settings.MEDIA_ROOT}),
+    url(r'^media/(?P<path>.*)', serve, {'document_root': settings.MEDIA_ROOT}),
+
+    # 评论
+    url(r'^comment/', views.comment),
+    # 点赞点踩
+    url(r'^up_and_down/', views.up_and_down),
 
     # 个人站点页面搭建
     url(r'^(?P<username>\w+)/$', views.site, name='site'),
+
+    # 侧边栏筛选功能
+    # url(r'^(?P<username>\w+)/category(\d+)', views.site),
+    # url(r'^(?P<username>\w+)/tag(\d+)', views.site),
+    # url(r'^(?P<username>\w+)/article(\w+)', views.site),
+    # 三条合并一条
+    url(r'^(?P<username>\w+)/(?P<condition>category|tag|archive)/(?P<param>.*)/', views.site),
+
+    # 文章详情页
+    url(r'^(?P<username>\w+)/article/(?P<article_id>\d+)/', views.article_detail)
 ]
