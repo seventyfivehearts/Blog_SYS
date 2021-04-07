@@ -1,3 +1,5 @@
+import os
+
 from django.contrib import auth
 from django.shortcuts import render, HttpResponse, redirect
 from app01.myforms import MyRegForm
@@ -7,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from utils.mypages import Pagination
 from django.db.models import Count
 from django.db.models.functions import TruncMonth
+from BBS import settings
 
 
 # Create your views here.
@@ -226,7 +229,7 @@ def site(request, username, **kwargs):
     return render(request, 'site.html', locals())
 
 
-def article_detail(request,username,article_id):
+def article_detail(request, username, article_id):
     """
     应该需要校验username和article_id是否存在,但是我们这里先只完成正确的情况
     默认不会瞎搞
@@ -238,13 +241,12 @@ def article_detail(request,username,article_id):
     user_obj = models.UserInfo.objects.filter(username=username).first()
     blog = user_obj.blog
     # 先获取文章对象
-    article_obj = models.Article.objects.filter(pk=article_id,blog__userinfo__username=username).first()
+    article_obj = models.Article.objects.filter(pk=article_id, blog__userinfo__username=username).first()
     if not article_obj:
-        return render(request,'error.html')
+        return render(request, 'error.html')
     # 获取当前 文章所有的评论内容
     comment_list = models.Comment.objects.filter(article=article_obj)
-    return render(request,'article_detail.html',locals())
-
+    return render(request, 'article_detail.html', locals())
 
 
 import json
@@ -268,7 +270,7 @@ def up_and_down(request):
             is_up = request.POST.get('is_up')
             # print(is_up, type(is_up))  # true <class 'str'>
             is_up = json.loads(is_up)  # True <class 'bool'>   json数据需要转换一下
-            print(is_up, type(is_up))
+            # print(is_up, type(is_up))
             # 2.判断当前文章是否是用户自己写的(不能给自己点赞点踩)
             # 根据文章id查文章对象 根据文章对象查询user 和request.user比对
             article_obj = models.Article.objects.filter(pk=article_id).first()
@@ -297,7 +299,7 @@ def up_and_down(request):
         else:
             back_dic['code'] = 1005
             back_dic['msg'] = '请先<a href="/login/">登录</a>'
-    return JsonResponse(back_dic)
+        return JsonResponse(back_dic)
 
 
 from django.db import transaction
@@ -322,3 +324,110 @@ def comment(request):
                 back_dic['code'] = 1001
                 back_dic['msg'] = '用户未登陆'
             return JsonResponse(back_dic)
+
+
+@login_required
+def backed(request):
+    article_list = models.Article.objects.filter(blog=request.user.blog)
+    current_page = request.GET.get("page", 1)
+    all_count = article_list.count()
+    page_obj = Pagination(current_page=request.GET.get('page', 1), all_count=all_count, per_page_num=2)
+    page_queryset = article_list[page_obj.start:page_obj.end]
+
+    return render(request, 'backend/backend.html', locals())
+
+
+from bs4 import BeautifulSoup
+
+
+@login_required
+def add_article(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        print(title)
+        content = request.POST.get('content')
+        category_id = request.POST.get('category')
+        tag_id_list = request.POST.getlist('tag')
+
+        # 模块使用
+        soup = BeautifulSoup(content, 'html.parser')
+        # 获取所有的标签
+        tags = soup.findAll()
+        # print(tags)
+        for tag in tags:
+            if tag.name == 'script':
+                tag.decompose()
+        # 文章简介
+        # 截取文本150个
+        desc = soup.text[0:150]
+        # 1.直接截取0-150字符
+        # desc = content[0:150]
+        article_obj = models.Article.objects.create(
+            title=title,
+            content=str(soup),
+            desc=desc,
+            category_id=category_id,
+            blog=request.user.blog
+        )
+        # 文章和标签的关系表 是自己创建的 不能使用add set remove clear方法
+        # 自己去操作关系表 一次性可能要创建多条数据 使用批量插入 bulk_create()
+        article_obj_list = []
+        for i in tag_id_list:
+            tag_article_obj = models.Article2Tag(article=article_obj, tag_id=i)
+            article_obj_list.append(tag_article_obj)
+        # 批量插入数据
+        models.Article2Tag.objects.bulk_create(article_obj_list)
+        # 跳转到后台管理文章的页面
+        return redirect('/backend/')
+    category_list = models.Category.objects.filter(blog=request.user.blog)
+    tag_list = models.Tag.objects.filter(blog=request.user.blog)
+    return render(request, 'backend/add_article.html', locals())
+
+
+def upload_image(request):
+    """
+    //成功时
+    {
+            "error" : 0,
+            "url" : "http://www.example.com/path/to/file.ext"
+    }
+    //失败时
+    {
+            "error" : 1,
+            "message" : "错误信息"
+    }
+    :param request:
+    :return:
+    """
+    back_dic = {'error': 0}
+    # 用户上传的文件也算是静态资源 需要放在media中
+    if request.method == 'POST':
+
+        file_obj = request.FILES.get('imgFile')
+        file_dir = os.path.join(settings.BASE_DIR, 'media', 'article_img')
+        # 判断当前文件夹是否存在
+        if not os.path.isdir(file_dir):
+            os.mkdir(file_dir)
+        # 拼接图片的完整路径
+        file_path = os.path.join(file_dir, file_obj.name)
+        with open(file_path, 'wb') as f:
+            for line in file_obj:
+                f.write(line)
+        back_dic['url'] = '/media/article_img/%s' % file_obj.name
+    return JsonResponse(back_dic)
+
+
+@login_required
+def set_avatar(request):
+    if request.method == 'POST':
+        file_obj = request.FILES.get('avatar')
+        # models.UserInfo.objects.filter(pk=request.user.pk).update(avatar=file_obj)
+        # 1.自己手动加avatar前缀
+        # 2.换一种更新方法
+        user_obj = request.user
+        user_obj.avatar = file_obj
+        user_obj.save()
+        return redirect('/home/')
+    blog = request.user.blog
+    username = request.user.username
+    return render(request, 'set_avatar.html', locals())

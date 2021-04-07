@@ -43,6 +43,18 @@ urlpatterns = [
     # 点赞点踩
     url(r'^up_and_down/', views.up_and_down),
 
+    # 后台管理
+    url(r'^backend/', views.backed),
+
+    # 添加文章
+    url('^add/article', views.add_article),
+
+    # 编辑器添加图片上传接口
+    url(r'^upload_image/', views.upload_image),
+
+    # 修改用户头像
+    url(r'^set/avatar/', views.set_avatar),
+
     # 个人站点页面搭建
     url(r'^(?P<username>\w+)/$', views.site, name='site'),
 

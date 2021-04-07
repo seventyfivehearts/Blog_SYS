@@ -111,7 +111,7 @@
             let $div = $(this);
             // 朝后端发送ajax请求
             $.ajax({
-                url:'/up_or_down/',
+                url:'/up_and_down/',
                 type:'post',
                 data:{
                     'article_id':'{{ article_obj.pk }}',
